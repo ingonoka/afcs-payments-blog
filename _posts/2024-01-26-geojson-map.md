@@ -18,7 +18,7 @@ This is an example post with some [geojson](https://geojson.org/) code. The supp
     {
       "type": "Feature",
       "properties": {
-        "title": "Test",
+        "name": "Test",
         "stroke": "#555555",
         "stroke-width": 2,
         "stroke-opacity": 1,
@@ -57,7 +57,7 @@ This is an example post with some [geojson](https://geojson.org/) code. The supp
     {
       "type": "Feature",
       "properties": {
-        "title": "Test"
+        "name": "Test"
       },
       "geometry": {
         "coordinates": [
