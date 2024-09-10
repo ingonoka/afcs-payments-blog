@@ -179,17 +179,13 @@
       "name": "Private Pilot License from DCA, Malaysia",
       "level": "Single Engine Propeller Aircraft",
       "icon": "",
-      "keywords": [
-        "PPL"
-      ]
+      "keywords": ["PPL"]
     },
     {
       "name": "Private Pilot License from FAA, USA",
       "level": "Single Engine Propeller Aircraft",
       "icon": "",
-      "keywords": [
-        "PPL"
-      ]
+      "keywords": ["PPL"]
     }
   ],
   "languages": [
@@ -208,8 +204,7 @@
     {
       "name": "Sailing",
       "icon": "fa-solid fa-tag",
-      "keywords": [
-        "Sailing"]
+      "keywords": ["Sailing"]
     }
   ],
   "references": [],
