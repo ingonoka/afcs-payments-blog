@@ -150,7 +150,8 @@ related_blog_posts:
 giscus:
   repo: ingonoka/afcs-payments-blog
   repo-id:
-  category-id:
+  category: "General"
+  categoryId: "DIC_kwDOLYN10c4Cdh8R"
   mapping: title
   strict: 1
   reactions-enabled: 1
