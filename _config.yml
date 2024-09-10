@@ -148,16 +148,16 @@ related_blog_posts:
 # Giscus comments (RECOMMENDED)
 # Follow instructions on https://giscus.app/ to setup for your repo to fill out the information below.
 giscus:
-  repo= ingonoka/afcs-payments-blog
-  repo-id= R_kgDOMu6_9w
-  category-id= DIC_kwDOMu6_984CiVzD
-  mapping= title
-  strict= 0
-  reactions-enabled= 1
-  emit-metadata= 0
-  input-position= top
-  theme= light
-  lang= en
+  repo: ingonoka/afcs-payments-blog
+  repo-id: R_kgDOMu6_9w
+  category-id: DIC_kwDOMu6_984CiVzD
+  mapping: title
+  strict: 0
+  reactions-enabled: 1
+  emit-metadata: 0
+  input-position: top
+  theme: light
+  lang: en
 
 #  repo: ingonoka/afcs-payments-blog # <your-github-user-name>/<your-github-repo-name>
 #  repo_id: # leave empty or specify your repo_id (see https://giscus.app/)
