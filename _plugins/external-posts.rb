@@ -96,7 +96,7 @@ module ExternalPosts
       {
         title: title,
         content: body_content,
-        summary: description
+        summary: "description"
         # Note: The published date is now added in the fetch_from_urls method.
       }
     end
