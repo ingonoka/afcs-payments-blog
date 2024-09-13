@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://afcs-payments-blog.github.io/afcs-payments-blog//sitemap.xml
+Sitemap: https://afcsblog.ingonoka.com/afcs-payments-blog//sitemap.xml
