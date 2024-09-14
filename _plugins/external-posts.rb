@@ -12,7 +12,7 @@ module ExternalPosts
     def generate(site)
       if site.config['external_sources'] != nil
         site.config['external_sources'].each do |src|
-          puts "Fetching external posts from #{src['name']}:"
+          puts "Fetching external pposts from #{src['name']}:"
           if src['rss_url']
             fetch_from_rss(site, src)
           elsif src['posts']
@@ -32,10 +32,17 @@ module ExternalPosts
     def process_entries(site, src, entries)
       entries.each do |e|
         puts "...fetching #{e.url}"
+        h4 = Nokogiri::HTML.parse(e.content).css('h4')
+        if h4.first.nil?
+            summary = Nokogiri::HTML.parse(e.content).css('p').first.text
+        else
+            summary = h4.first.text
+        end
+
         create_document(site, src['name'], e.url, {
           title: e.title,
           content: e.content,
-          summary: e.summary,
+          summary: summary,
           published: e.published
         })
       end
