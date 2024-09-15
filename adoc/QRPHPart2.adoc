@@ -1,0 +1,229 @@
+:bibtex-file: ../../AFCS Book/Literature/references.bib
+// Formatting of citations and bibliography
+// asciidoc| bibtex or biblatex
+:bibtex-format: asciidoc
+// Reference formatting style
+// any style supported by csl-styles| apa| ieee
+:bibtex-style: ieee
+// Custom citation template for numeric style
+// Any string matching /(.+?)\$id(.+)/
+:bibtex-citation-template: ($id)
+
+ifdef::backend-pdf[]
+:toc:
+:sectnums:
+= The EMV Specifications
+endif::[]
+
+
+The large payment schemes such as MasterCard(TM) and Visa(TM) have always been form believers in the smart card technology. That believe was reinforced with the introduction of contactless payments, which opened the world of mobile phones, smartwatches and other devices to EMV.
+
+However, while the payment schemes and their member organizations spent millions (maybe billions) of dollars on expensive EMV terminals and smart cards, new players dismissed EMV as too cumbersome, expensive and too much controlled by traditional payment schemes. Instead, e-wallet providers implemented QR code-driven systems.
+
+This move gained critical mass due to the ever so pragmatic Chinese payment systems such as Alipay, WeChat and UnionPay. Watching the neck-breaking speed at which these systems proliferated in China, other countries, especially in the developing world, copied the Chinese success formula, sometimes in cooperation with Chinese e-wallet, sometimes DIY-style.
+
+The speed at which QR code acceptance was implemented was indeed remarkable. The cost of QR code payment was much lower than the cost of EMV and also much less complex, especially for static merchant presented QR codes. Enrolling a merchant was as simple as printing a QR code on a cardboard standee and providing a low-cost phone to receive payment confirmations. In fact, some enterprising merchants used their personal account to receive payments without asking the e-wallet provider.
+
+Seeing the QR code trend, somebody at EMVCo must have lost their nerve. Or maybe EMVCo was pressured by the big players in the EMV world to come up with a standard that would allow the payment scheme members to benefit from the new QR technology. And thus, I think in 2017, the EMV QR Code Payment Standard was born.
+
+EMVCo published two QR Code specifications. One for QR codes that are presented by the customer to the merchant and another one for QR codes that are presented by the merchant to the customer.
+
+The two specifications are oddly different, as if they were developed by two teams that did not bother talking to each other.
+
+== Merchant Presented
+
+
+=== "TLV" Encoding
+All data elements in the QR data are encoded in three parts: the tag, the length and the value.
+
+[horizontal]
+Tag:: The tag defines the meaning, format, encoding, etc. of the data objectfootnote:[Data Objects are TLV construct where the value can either be a primitive type or a template. A template contains other data objects, primitive types do not.] value.
+
+Length::
+The length tells us how many bytes or charactersfootnote:[EMVCo is using characters] are in the value.
+
+Value::
+The value contains primitive data such as a number or a printable string or, in the case of a template data object, it contains other data objects.
+
+It is unfortunate that EMVCo does not use well-established TLV message encoding conventions such as the ones in the ASN.1 standardfootnote:[ASN.1 provides efficient encoding mechanisms for the tag number, the type of the value, and the length part and so forth.].
+
+EMVCo, instead, chose to encode tag and length in two numerical characters each. In the case of the tag number, this encoding does not carry any information about the type of the data object's value.  It is just an identifier.
+
+The inefficiency becomes clear when you consider that the specification allocates four bytes for the tag and the length, neither of which can be bigger than 99!
+
+Apart from the obvious inefficiency of the encoding, this means that there is no way to sensibly parse the network-proprietary data objects. For instance, there is no way to work out from the data alone whether a data object is a template (i.e., it contains other TLV elements) or whether it is a primitive data object.  Equally, it is impossible to work out whether the data is a number or a printable string or something else.
+
+==== Primitive Data Object Types
+There are three data types for the values of each template or primitive data object: Numeric, Alphanumeric-Special, and String. The encoding in all cases is UTF-8.
+
+The numeric type data represents an integer consisting of decimal digits 0 to 9. It is encoded by assigning each character its one-byte code point according to UTF-8 (see <<utf-8-encoding>>). In the case of tag and length, the integer must always contain exactly two decimal digits, padded with a zero on the left if necessary.
+
+The alphanumeric-special data type is a printable ASCII character (see list table 36 in cite:[EMVCo:2011aa]). As such, the encoding is done by assigning each character the one-byte UTF-8 (see <<utf-8-encoding>>) code (between 0x20 and 0x7e). This type is used for some values.
+
+The string data type is a character that can be encoded with UTF-8 into one, two, three or four bytes.  All character encodings must be precomposed; that means characters with diacritical marks are always encoded into one UTF-8 encoded character.
+
+The other option would have been to use the UTF-8 encoding for the diacritical mark followed by the UTF-8 encoded value of the base character. However, that would then beg the question whether to add two to the length for each character with a diacritical mark or just add one.
+
+The catch now is that the length within the TLV structure provides the number of characters, not the number of bytes.
+
+Using the number of characters has some implications, because the length of the encoded data (the number of bytes of the raw QR data) is different from the length provided in the TLV data object.  This is evident in section 4.1. of cite:[EMVCo:2020ab] where they are trying to limit the length of the "payload" (i.e., the data represented by the QR code) to 512 alphanumeric characters.
+
+Firstly, "alphanumeric character" is nowhere defined as a type.  Is it possible that they intend to limit the number of bytes in the encoded data of the QR code to 512?
+
+Secondly, there is a requirement to reduce the number of "alphanumeric characters" in the payload if some characters have to be UTF-8 encoded into more than one byte. Again, something that seems to suggest that "alphanumeric character" really means byte.
+
+Even within the well-defined tags of the EMV specification, there are design decisions that can make battle-hardened computer engineers cry.
+
+For instance, Table 3.6. (see cite:[EMVCo:2020ab]) shows that tags 02 to 51 are merchant account information with data type `ans`. In table 4.1 then, it is revealed that only tags 02 to 25 denote primitive data objects (reserved for various international networks), while tags 26 to 51 are templates that follow a certain structure. The inclusion of network-specific tags is already bad enough, but who came up with this design?
+
+In fact, I imagine a conversation at an EMVCo meeting:
+
+Engineer:: Let's put the routing and account information into a bunch of templates that are open to anybody, and which we will call "Merchant Account info".
+
+"Open" network "specialists":: What?  You want to treat us the same as these pesky e-wallet upstarts and national schemes? We are special and demand our own tags that cannot be scaled to more networks so that we remain to be special as long as this specification exists.
+
+EMVCo:: Ok, we can just separate the tags we reserved for the account info and give some of them exclusively to you. And, you can put any data in.  In fact, you do not even have to follow the TLV convention. It is ugly, but we are EMVCo. So ugly, is what we do.
+
+
+== References
+
+bibliography::[]
+
+[appendix]
+[[utf-8-encoding,Encoding]]
+== UTF-8 Encoding
+
+.Numerical (in red) and Alphanumeric Special Data Type encoding table (each character is encoded in one byte)
+
+[cols="10m,10m,10m,5,10m,10m,10m,5,10m,10m,10m",grid=rows,options="header"]
+|====
+s|Char s|Dec s|Hex | s|Char s|Dec s|Hex d| s| Char s|Dec s|Hex
+|" "|32|0x20|
+|"\|"|33|0x21|
+|"""|34|0x22
+
+|"#"|35|0x23|
+|"$"|36|0x24|
+|"%"|37|0x25
+
+|"&"|38|0x26|
+|"'"|39|0x27|
+|"("|40|0x28
+|")"|41|0x29|
+|"*"|42|0x2A|
+|"+"|43|0x2B
+|","|44|0x2C|
+|"-"|45|0x2D|
+|"."|46|0x2E
+|"/"|47|0x2F|
+|[.red]#"0"#|48|0x30|
+| [.red]#"1"# |49|0x31
+
+| [.red]#"2"# |50|0x32|
+| [.red]#"3"# |51|0x33|
+| [.red]#"4"# |52|0x34
+
+| [.red]#"5"# |53|0x35|
+| [.red]#"6"# |54|0x36|
+| [.red]#"7"# |55|0x37
+
+| [.red]#"8"# |56|0x38|
+| [.red]#"9"# |57|0x39|
+|":"|58|0x3A
+
+|";"|59|0x3B|
+|"<"|60|0x3C|
+|"="|61|0x3D
+
+|">"|62|0x3E|
+|"?"|63|0x3F|
+|"?"|63|0x3F
+
+|"@"|64|0x40|
+|"A"|65|0x41|
+|"B"|66|0x42
+
+|"C"|67|0x43|
+|"D"|68|0x44|
+|"E"|69|0x45
+
+|"F"|70|0x46|
+|"G"|71|0x47|
+|"H"|72|0x48
+
+|"I"|73|0x49|
+|"J"|74|0x4A|
+|"K"|75|0x4B
+
+|"L"|76|0x4C|
+|"M"|77|0x4D|
+|"N"|78|0x4E
+
+|"O"|79|0x4F|
+|"P"|80|0x50|
+|"Q"|81|0x51
+
+|"R"|82|0x52|
+|"S"|83|0x53|
+|"T"|84|0x54
+
+|"U"|85|0x55|
+|"V"|86|0x56|
+|"W"|87|0x57
+
+|"X"|88|0x58|
+|"Y"|89|0x59|
+|"Z"|90|0x5A
+
+|"["|91|0x5B|
+|"\"|92|0x5C|
+|"]"|93|0x5D
+
+|"^"|94|0x5E|
+|"_"|95|0x5F|
+|"_"|95|0x5F
+
+|"`"|96|0x60|
+|"a"|97|0x61|
+|"b"|98|0x62
+
+|"c"|99|0x63|
+|"d"|100|0x64|
+|"e"|101|0x65
+
+|"f"|102|0x66|
+|"g"|103|0x67|
+|"h"|104|0x68
+
+|"i"|105|0x69|
+|"j"|106|0x6A|
+|"k"|107|0x6B
+
+|"l"|108|0x6C|
+|"m"|109|0x6D|
+|"n"|110|0x6E
+
+|"o"|111|0x6F|
+|"p"|112|0x70|
+|"q"|113|0x71
+
+|"r"|114|0x72|
+|"s"|115|0x73|
+|"t"|116|0x74
+
+|"u"|117|0x75|
+|"v"|118|0x76|
+|"w"|119|0x77
+
+|"x"|120|0x78|
+|"y"|121|0x79|
+|"z"|122|0x7A
+
+|"{"|123|0x7B|
+|"\|"|124|0x7C|
+|"}"|125|0x7D
+
+|"~"|126|0x7E|
+||||
+|||
+|====

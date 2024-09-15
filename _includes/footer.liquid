@@ -6,7 +6,10 @@
       {{ site.middle_name }}
       {{ site.last_name }}. {{ site.footer_text }}
       {% if site.impressum_path %}
-        <a href="{{ site.url }}{{ site.baseurl }}{{ site.impressum_path }}">Impressum</a>.
+       {% comment %}
+         <a href="{{ site.url }}{{ site.baseurl }}{{ site.impressum_path }}">Impressum</a>.
+       {% endcomment %}
+         <a href="{{ site.impressum_path | relative_url }}">Impressum</a>.
       {% endif %}
       {% if site.last_updated %}
         Last updated: {{ 'now' | date: '%B %d, %Y' }}.
@@ -25,7 +28,10 @@
       {{ site.middle_name }}
       {{ site.last_name }}. {{ site.footer_text }}
       {% if site.impressum_path %}
-        <a href="{{ site.url }}{{ site.baseurl }}{{ site.impressum_path }}">Impressum</a>.
+      {% comment %}
+          <a href="{{ site.url }}{{ site.baseurl }}{{ site.impressum_path }}">Impressum</a>.
+      {% endcomment %}
+          <a href="{{ site.impressum_path | relative_url }}">Impressum</a>.
       {% endif %}
       {% if site.last_updated %}
         Last updated: {{ 'now' | date: '%B %d, %Y' }}.

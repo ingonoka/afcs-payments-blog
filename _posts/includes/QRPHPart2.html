@@ -1,0 +1,617 @@
+<div class="paragraph">
+<p>The large payment schemes such as MasterCard&#8482; and Visa&#8482; have always been form believers in the smart card technology. That believe was reinforced with the introduction of contactless payments, which opened the world of mobile phones, smartwatches and other devices to EMV.</p>
+</div>
+<div class="paragraph">
+<p>However, while the payment schemes and their member organizations spent millions (maybe billions) of dollars on expensive EMV terminals and smart cards, new players dismissed EMV as too cumbersome, expensive and too much controlled by traditional payment schemes. Instead, e-wallet providers implemented QR code-driven systems.</p>
+</div>
+<div class="paragraph">
+<p>This move gained critical mass due to the ever so pragmatic Chinese payment systems such as Alipay, WeChat and UnionPay. Watching the neck-breaking speed at which these systems proliferated in China, other countries, especially in the developing world, copied the Chinese success formula, sometimes in cooperation with Chinese e-wallet, sometimes DIY-style.</p>
+</div>
+<div class="paragraph">
+<p>The speed at which QR code acceptance was implemented was indeed remarkable. The cost of QR code payment was much lower than the cost of EMV and also much less complex, especially for static merchant presented QR codes. Enrolling a merchant was as simple as printing a QR code on a cardboard standee and providing a low-cost phone to receive payment confirmations. In fact, some enterprising merchants used their personal account to receive payments without asking the e-wallet provider.</p>
+</div>
+<div class="paragraph">
+<p>Seeing the QR code trend, somebody at EMVCo must have lost their nerve. Or maybe EMVCo was pressured by the big players in the EMV world to come up with a standard that would allow the payment scheme members to benefit from the new QR technology. And thus, I think in 2017, the EMV QR Code Payment Standard was born.</p>
+</div>
+<div class="paragraph">
+<p>EMVCo published two QR Code specifications. One for QR codes that are presented by the customer to the merchant and another one for QR codes that are presented by the merchant to the customer.</p>
+</div>
+<div class="paragraph">
+<p>The two specifications are oddly different, as if they were developed by two teams that did not bother talking to each other.</p>
+</div>
+<div class="sect1">
+<h2 id="_merchant_presented">Merchant Presented</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_tlv_encoding">"TLV" Encoding</h3>
+<div class="paragraph">
+<p>All data elements in the QR data are encoded in three parts: the tag, the length and the value.</p>
+</div>
+<div class="hdlist">
+<table>
+<tr>
+<td class="hdlist1">
+Tag
+</td>
+<td class="hdlist2">
+<p>The tag defines the meaning, format, encoding, etc. of the data object<sup class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnotedef_1" title="View footnote.">1</a>]</sup> value.</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Length
+</td>
+<td class="hdlist2">
+<p>The length tells us how many bytes or characters<sup class="footnote">[<a id="_footnoteref_2" class="footnote" href="#_footnotedef_2" title="View footnote.">2</a>]</sup> are in the value.</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Value
+</td>
+<td class="hdlist2">
+<p>The value contains primitive data such as a number or a printable string or, in the case of a template data object, it contains other data objects.</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>It is unfortunate that EMVCo does not use well-established TLV message encoding conventions such as the ones in the ASN.1 standard<sup class="footnote">[<a id="_footnoteref_3" class="footnote" href="#_footnotedef_3" title="View footnote.">3</a>]</sup>.</p>
+</div>
+<div class="paragraph">
+<p>EMVCo, instead, chose to encode tag and length in two numerical characters each. In the case of the tag number, this encoding does not carry any information about the type of the data object&#8217;s value.  It is just an identifier.</p>
+</div>
+<div class="paragraph">
+<p>The inefficiency becomes clear when you consider that the specification allocates four bytes for the tag and the length, neither of which can be bigger than 99!</p>
+</div>
+<div class="paragraph">
+<p>Apart from the obvious inefficiency of the encoding, this means that there is no way to sensibly parse the network-proprietary data objects. For instance, there is no way to work out from the data alone whether a data object is a template (i.e., it contains other TLV elements) or whether it is a primitive data object.  Equally, it is impossible to work out whether the data is a number or a printable string or something else.</p>
+</div>
+<div class="sect3">
+<h4 id="_primitive_data_object_types">Primitive Data Object Types</h4>
+<div class="paragraph">
+<p>There are three data types for the values of each template or primitive data object: Numeric, Alphanumeric-Special, and String. The encoding in all cases is UTF-8.</p>
+</div>
+<div class="paragraph">
+<p>The numeric type data represents an integer consisting of decimal digits 0 to 9. It is encoded by assigning each character its one-byte code point according to UTF-8 (see <a href="#utf-8-encoding">Encoding</a>). In the case of tag and length, the integer must always contain exactly two decimal digits, padded with a zero on the left if necessary.</p>
+</div>
+<div class="paragraph">
+<p>The alphanumeric-special data type is a printable ASCII character (see list table 36 in <span class="citation">(<a href="#EMVCo:2011aa">1</a>)</span>). As such, the encoding is done by assigning each character the one-byte UTF-8 (see <a href="#utf-8-encoding">Encoding</a>) code (between 0x20 and 0x7e). This type is used for some values.</p>
+</div>
+<div class="paragraph">
+<p>The string data type is a character that can be encoded with UTF-8 into one, two, three or four bytes.  All character encodings must be precomposed; that means characters with diacritical marks are always encoded into one UTF-8 encoded character.</p>
+</div>
+<div class="paragraph">
+<p>The other option would have been to use the UTF-8 encoding for the diacritical mark followed by the UTF-8 encoded value of the base character. However, that would then beg the question whether to add two to the length for each character with a diacritical mark or just add one.</p>
+</div>
+<div class="paragraph">
+<p>The catch now is that the length within the TLV structure provides the number of characters, not the number of bytes.</p>
+</div>
+<div class="paragraph">
+<p>Using the number of characters has some implications, because the length of the encoded data (the number of bytes of the raw QR data) is different from the length provided in the TLV data object.  This is evident in section 4.1. of <span class="citation">(<a href="#EMVCo:2020ab">2</a>)</span> where they are trying to limit the length of the "payload" (i.e., the data represented by the QR code) to 512 alphanumeric characters.</p>
+</div>
+<div class="paragraph">
+<p>Firstly, "alphanumeric character" is nowhere defined as a type.  Is it possible that they intend to limit the number of bytes in the encoded data of the QR code to 512?</p>
+</div>
+<div class="paragraph">
+<p>Secondly, there is a requirement to reduce the number of "alphanumeric characters" in the payload if some characters have to be UTF-8 encoded into more than one byte. Again, something that seems to suggest that "alphanumeric character" really means byte.</p>
+</div>
+<div class="paragraph">
+<p>Even within the well-defined tags of the EMV specification, there are design decisions that can make battle-hardened computer engineers cry.</p>
+</div>
+<div class="paragraph">
+<p>For instance, Table 3.6. (see <span class="citation">(<a href="#EMVCo:2020ab">2</a>)</span>) shows that tags 02 to 51 are merchant account information with data type <code>ans</code>. In table 4.1 then, it is revealed that only tags 02 to 25 denote primitive data objects (reserved for various international networks), while tags 26 to 51 are templates that follow a certain structure. The inclusion of network-specific tags is already bad enough, but who came up with this design?</p>
+</div>
+<div class="paragraph">
+<p>In fact, I imagine a conversation at an EMVCo meeting:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Engineer</dt>
+<dd>
+<p>Let&#8217;s put the routing and account information into a bunch of templates that are open to anybody, and which we will call "Merchant Account info".</p>
+</dd>
+<dt class="hdlist1">"Open" network "specialists"</dt>
+<dd>
+<p>What?  You want to treat us the same as these pesky e-wallet upstarts and national schemes? We are special and demand our own tags that cannot be scaled to more networks so that we remain to be special as long as this specification exists.</p>
+</dd>
+<dt class="hdlist1">EMVCo</dt>
+<dd>
+<p>Ok, we can just separate the tags we reserved for the account info and give some of them exclusively to you. And, you can put any data in.  In fact, you do not even have to follow the TLV convention. It is ugly, but we are EMVCo. So ugly, is what we do.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_references">References</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a id="EMVCo:2011aa"></a>(1) EMVCo, “EMV - Integrated Circuit Card Specifications for Payment Systems, Book 4, Cardholder, Attendant, and Acquirer Interface Requirements,” EMVCo, LLC, Technical Standard, Nov. 2011. [Online]. Available: <a href="https://mvallim.github.io/emv-qrcode/docs/EMV_v4.3_Book_4_Other_Interfaces_20120607062305603.pdf" class="bare">https://mvallim.github.io/emv-qrcode/docs/EMV_v4.3_Book_4_Other_Interfaces_20120607062305603.pdf</a>.</p>
+</div>
+<div class="paragraph">
+<p><a id="EMVCo:2020ab"></a>(2) EMVCo, “EMV Code Specification for Payment Systems (EMV QRCPS) - Merchant-Presented Mode,” EMVCo, LLC, Technical Standard, Nov. 2020.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="utf-8-encoding">Appendix A: UTF-8 Encoding</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Table 1. Numerical (in red) and Alphanumeric Special Data Type encoding table (each character is encoded in one byte)</caption>
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 10%;">
+<col style="width: 10%;">
+<col style="width: 5%;">
+<col style="width: 10%;">
+<col style="width: 10%;">
+<col style="width: 10%;">
+<col style="width: 5%;">
+<col style="width: 10%;">
+<col style="width: 10%;">
+<col style="width: 10%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Char</th>
+<th class="tableblock halign-left valign-top">Dec</th>
+<th class="tableblock halign-left valign-top">Hex</th>
+<th class="tableblock halign-left valign-top"></th>
+<th class="tableblock halign-left valign-top">Char</th>
+<th class="tableblock halign-left valign-top">Dec</th>
+<th class="tableblock halign-left valign-top">Hex</th>
+<th class="tableblock halign-left valign-top"></th>
+<th class="tableblock halign-left valign-top">Char</th>
+<th class="tableblock halign-left valign-top">Dec</th>
+<th class="tableblock halign-left valign-top">Hex</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>" "</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>32</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x20</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"|"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>33</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x21</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"""</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>34</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x22</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"#"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>35</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x23</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"$"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>36</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x24</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"%"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>37</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x25</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"&amp;"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>38</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x26</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"'"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>39</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x27</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"("</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>40</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x28</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>")"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>41</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x29</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"*"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>42</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x2A</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"+"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>43</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x2B</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>","</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>44</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x2C</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"-"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>45</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x2D</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"."</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>46</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x2E</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"/"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>47</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x2F</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><span class="red">"0"</span></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>48</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x30</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><span class="red">"1"</span></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>49</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x31</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><span class="red">"2"</span></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>50</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x32</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><span class="red">"3"</span></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>51</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x33</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><span class="red">"4"</span></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>52</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x34</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><span class="red">"5"</span></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>53</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x35</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><span class="red">"6"</span></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>54</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x36</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><span class="red">"7"</span></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>55</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x37</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><span class="red">"8"</span></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>56</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x38</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><span class="red">"9"</span></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>57</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x39</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>":"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>58</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x3A</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>";"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>59</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x3B</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"&lt;"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>60</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x3C</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"="</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>61</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x3D</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"&gt;"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>62</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x3E</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"?"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>63</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x3F</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"?"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>63</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x3F</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"@"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>64</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x40</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"A"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>65</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x41</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"B"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>66</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x42</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"C"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>67</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x43</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"D"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>68</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x44</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"E"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>69</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x45</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"F"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>70</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x46</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"G"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>71</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x47</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"H"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>72</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x48</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"I"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>73</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x49</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"J"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>74</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x4A</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"K"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>75</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x4B</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"L"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>76</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x4C</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"M"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>77</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x4D</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"N"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>78</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x4E</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"O"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>79</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x4F</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"P"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>80</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x50</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"Q"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>81</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x51</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"R"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>82</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x52</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"S"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>83</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x53</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"T"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>84</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x54</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"U"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>85</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x55</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"V"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>86</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x56</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"W"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>87</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x57</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"X"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>88</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x58</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"Y"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>89</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x59</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"Z"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>90</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x5A</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"["</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>91</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x5B</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"\"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>92</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x5C</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"]"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>93</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x5D</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"^"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>94</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x5E</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"_"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>95</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x5F</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"_"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>95</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x5F</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"`"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>96</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x60</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"a"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>97</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x61</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"b"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>98</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x62</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"c"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>99</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x63</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"d"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>100</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x64</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"e"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>101</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x65</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"f"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>102</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x66</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"g"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>103</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x67</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"h"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>104</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x68</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"i"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>105</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x69</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"j"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>106</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x6A</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"k"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>107</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x6B</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"l"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>108</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x6C</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"m"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>109</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x6D</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"n"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>110</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x6E</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"o"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>111</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x6F</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"p"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>112</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x70</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"q"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>113</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x71</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"r"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>114</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x72</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"s"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>115</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x73</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"t"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>116</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x74</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"u"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>117</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x75</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"v"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>118</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x76</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"w"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>119</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x77</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"x"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>120</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x78</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"y"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>121</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x79</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"z"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>122</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x7A</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"{"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>123</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x7B</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"|"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>124</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x7C</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"}"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>125</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x7D</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"~"</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>126</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0x7E</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="footnotes">
+<hr>
+<div class="footnote" id="_footnotedef_1">
+<a href="#_footnoteref_1">1</a>. Data Objects are TLV construct where the value can either be a primitive type or a template. A template contains other data objects, primitive types do not.
+</div>
+<div class="footnote" id="_footnotedef_2">
+<a href="#_footnoteref_2">2</a>. EMVCo is using characters
+</div>
+<div class="footnote" id="_footnotedef_3">
+<a href="#_footnoteref_3">3</a>. ASN.1 provides efficient encoding mechanisms for the tag number, the type of the value, and the length part and so forth.
+</div>
+</div>

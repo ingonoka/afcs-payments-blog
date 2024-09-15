@@ -1,0 +1,117 @@
+:!showtitle:
+= QRPh Part 1 - A short history
+:bibtex-file: ../../AFCS Book/Literature/references.bib
+// Formatting of citations and bibliography
+// asciidoc, bibtex or biblatex
+:bibtex-format: asciidoc
+// Reference formatting style
+// any style supported by csl-styles, apa, ieee
+:bibtex-style: ieee
+// Custom citation template for numeric style
+// Any string matching /(.+?)\$id(.+)/
+:bibtex-citation-template: ($id)
+:imagesdir: qrph_part1
+:data-uri:
+:nofooter:
+
+For decades, other than in the big shopping malls, electronic payments were as good as non-existent in the Philippines. Consequently, there was not a lot of enthusiasm for investments in the EMV migration either. And so, little happened in the electronics payment markets until the QR E-Wallet wave swapped over from China.
+
+When I came to the Philippines in 2015, I remember thinking that this low-tech QR stuff cannot possibly take over from smart card technology. Maybe I was too invested in the whole smart card thing, for me to see the potential of QR payments.
+
+The deciding factor wasn't so much the use of QR codes, but the proliferation of smart mobile phones.
+
+While I did not see it at the time, around 2015, the Philippines was ready for an e-wallet revolution:
+
+. Pretty much everybody already had or would soon have a smartphone - in the future, financial transactions would take place on the phone.
+. There was still a large population without a bank account and therefore without any of the traditional general purpose credit cards. The e-wallets took the place of banks for a large portion of the population
+. Bill payments on e-wallets became very popular, and therefore lots of people were familiar with loading the wallets from a variety of sources.
+. Merchants had not invested in POS terminals yet, so there was no legacy infrastructure to content with.
+. The e-wallets realized that a payment is simply a money transfer between two e-wallet accounts. Everything, from transaction messages and processing, risk management, fraud prevention and so forth was the same.
+. Fast roll-out and competition between the dominant e-wallets was more important than interoperability. Nobody wanted to wait for some standard that would complicate and slow sown everything.
+. China (starting in 2011 with Alipay) had already developed the technology and demonstrated how a fast penetration rate can be achieved.
+.
+So, in hindsight, it was not surprising when the two dominant e-wallets (GCash and PayMaya) took over the payment market within a few short years.
+
+Generally, the fast roll-out was based on a very pragmatic approach that valued common sense more than global interoperability and overengineered specifications.
+
+. As nobody wanted to pay for expensive POS terminals, the wallets handed out very cheap mobile phones that only had one purpose: receive the approval code for a transaction via SMS. This was made even easier as the e-wallets were closely related to the dominant mobile networks, Globe and Smart.
+
+. All the security was done in the backend and on the mobile phone. The merchant simply got a piece of cardboard with their name and QR code on it. All the customer had to do was to scan the QR code, which provided the destination for the intra e-wallet money transfer.
+
+. There was (and probably still is) a "don-ask-don't tell" policy in place for merchants using their personal account to accept payments. Even so, personal accounts allow only a limited number of transactions and a limited transaction amount, for many small merchants that was enough.
+
+I imagine that neither the Central Bank nor the banks were entirely happy about this development. After all, the payment domain should belong to the financial industry, shouldn't it?
+
+To bring the QR payments market back into the fold of government regulated financial institutions, the "industry", under the tutelage of the Central Bank and the Philippine Payments Management, Inc., started to develop the Philippine's own QR Payment standard. That happened sometime between 2016 and 2019 (see cite:[BSP:2019aa]). The end goals were mandated adoption of a national standard and interoperability.
+
+After a while, the QRPh Standard was borne. I don't know when exactly when it happened, as nothing about the standardization process was public, but at least since 2023 (see cite:[BSP:2023aa]), the Philippines had a national QR payment standard that was mandated by the Central Bank.
+
+At the time QRPh became available, GCash was the dominant player in the e-wallet payment market, while PayMaya seemed to focus on developing an acquiring business that is open to all payment instruments.  That was probably the reason why PayMaya was an early adopter of the QRPh standard, as it allowed them to accept payments from the dominant e-wallet, GCash, among others.
+
+The BSP memorandum dated February 2023 mandates the adoption of QRPh by all receiving PSP from 1. July 2023. It is August 2024 now, and I am still seeing plenty of GCash QR codes all over the place.  In my experience, the receiver name is almost never the name of the merchant, but the name of the owner or somebody who would take the fall when the inland revenue comes calling. This means that most of the Non-QRPh acceptance may just be merchants using personal GCash accounts to receive payments.
+
+So, how does QRPh actually work? Well, I do not know for sure as there is very little publicly available information available about the standard.  However, we know a little bit from press statements:
+
+* The focus of the standard is, at least initially, Person-to-Person and Person-to-Merchant payments.
+* Currently, only receiver/merchant-presented QR codes are implemented.
+* The format of the QR data follows the EMV Merchant Presented QR specifications (see cite:[EMVCo:2020ab]).
+* All QR receivers must use the QRPh QR code format.
+* All QR senders must be able to scan QR codes following the QRPh standard.
+* The backbone of the QRPh system is InstaPay, which allows near instantaneous money transfer between participants.
+
+
+== Experiencing an actual QRPh Transaction
+
+To find out a bit more, I was looking for a place where I can actually conduct a QRPh transactions, and an opportunity resented itself on August 8, 2024, around 4:50 pm. And this is how it went:
+
+. I am at Landmark Department Store in Makati trying to buy some Christmas decoration for PHP 1458.31. (Yes, we start Christmas rather early in the Philippines.)
+. To my delight, I noticed a big sign next to the cashier, which announces the acceptance of QRPh together with a couple of logos of banks and e-wallets who should be able to scan the QR code.
+. That is interesting. I wonder how that will work. And so, to the annoyance of the cashier and the people behind me in the queue, I am asking to pay with QRPh.
+. In fact, my bank, BPI, is on the sign as well, so I will be trying to use the online banking application rather than an e-wallet. How exciting!
+. My better half starts rolling her eyes.
+. The cashier gets nervous and gives me one of the Standard answers of any Filipino shop attendant: "It's offline/not available/out of stock, Sir."
+. My better half asks me what is wrong with me, so I insist on paying with QRPh anyway.
+. The supervisor is called who finds a button  labeled QRPh.
+. After that, it works like magic. The POS terminal shows a QR code and even prints it out, so that I do not have to reach over into the cashier's den to scan the code.
+. Here is the Merchant Presented QR code for me to scan.
++
+image::01.png[]
+
+. I am opening the BPI app and without even logging in, find the QR option on the first screen.
+. Scanning is extremely fast, and the following screen is clear enough.
++
+image::BPIAppScreen.png[]
+
+. After one or two more taps, the whole transaction is over and the POS terminal prints a receipt almost immediately.
+. I love it.  Well done, Philippines!
+
+E-wallets and card companies must see this development with concern. Why load the e-wallet or deal with credit or debit cards, if I can pay directly from my bank account with my mobile phone.
+
+== The inner workings of QRPh
+
+As far as I know, the detailed inner workings of such a transaction are not in the public domain, but a QR payment transaction will follow some common principles. We can therefore guess what happened.
+
+
+Follow the transaction flow in the picture below.
+
+image::QRPhMerchantPresentedTransactionFlow.png[role=full-view-width]
+
+. The POS terminal will inform the receiver PSP that it expects a payment of a certain amount.
++
+The receiver PSP will create a pending payment transaction, create a reference ID and return the formatted QR data or even a QR picture to the POS terminal.
+. The POS terminal uses the QR picture from the backend or creates a QR code, which is then displayed and maybe even printed.
+. The customer opens the mobile application of the e-wallet or bank they intend to pay with.
+. After reviewing the transaction data, which is taken from the QR code and displayed on the customer's phone, an authorization is sent to the sender PSP. The authorization also contains information about the receiver PSP and the merchant account that should receive the payment amount.
+. It is straightforward to see how a fraudulent player could replace the destination account in the QR code while leaving the original merchant name untouched. To prevent this, either the mobile phone app sends a request to the backend system to check whether there is a pending payment request with the merchant name and account before showing the merchant name to the customer, or the transaction is cancelled when it turns out at a later step that the QR code data and the pending payment request do not match.
+. The sender PSP credits the customer's account with the payment amount and sends a money transfer message to InstaPay. InstaPay routes that message to the receiver PSP.
+. The receiver PSP checks the reference ID and matches it with the id of the pending payment transaction. I assume that at this point a lot of checks are necessary, for instance, to ensure the reference ID hasn't expired, that the reference ID hasn't already been used and so forth.
++
+It might be at this point that the receiver PSP already deducts the merchant fee for the transaction and only debits the discounted transaction amount. Or maybe, the fees are calculated periodically and billed separately. It is unlikely that for offlinefootnote:[An offline transaction refers to what in the traditional card payment world would be called a "card-present" transaction. Basically a transaction in a physical location with the customer present.] transactions, the sender PSP would charge the customer a fee. However, a percentage of the merchant fee may actually go the sender PSP (in traditional payment systems that would be called an interchange fee).
+. If everything went well, the receiver PSP will send a notification to the POS, which will then print a receipt and conclude the transaction. It is also likely that the sender PSP will send a confirmation message to the customer.
+
+
+== References
+
+
+bibliography::[]
+

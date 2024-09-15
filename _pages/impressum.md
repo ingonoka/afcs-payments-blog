@@ -1,6 +1,6 @@
 ---
 layout: page
-permalink: /impressum.html
+permalink: /impressum/
 title: Impressum
 description: Impressum nach Vorgaben der EU Bürokratie. / "Impressum" according to requirements of the EU bureaucracy.
 tabs: true

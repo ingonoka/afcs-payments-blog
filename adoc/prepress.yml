@@ -1,0 +1,57 @@
+extends: default
+base:
+  font-color: 000000
+  font-size: 10
+page:
+  size: [ 6in,9in ]
+link:
+  font_color: 000000
+title_page:
+  align: center
+  logo:
+    top: 40%
+  title:
+    top: 5%
+    font:
+      size: $heading_h1_font_size
+      color: 666666
+    line_height: 0.9
+  subtitle:
+    font_size: $heading_h3_font_size
+    font_style: bold_italic
+    line_height: 1
+  authors:
+    font_size: $base_font_size_large
+header:
+  sectlevels: 1
+  font_size: $base_font_size_min
+  height: $base-line-height-length * 2.5
+  padding: [ $base-line-height-length, 1, 0, 1 ]
+  recto:
+    right:
+      content: '{section-or-chapter-title}'
+  verso:
+    left:
+      #      content: '{section-or-chapter-title}'
+      content: '{document-title}
+      '
+heading:
+  h2_font_size: round($base_font_size * 1.2)
+  h3_font_size: round($base_font_size)
+  h4_font_size: round($base_font_size)
+  h5_font_size: $base_font_size
+  h6_font_size: $base_font_size_small
+  margin_top: $vertical_rhythm * 0.4
+  margin_bottom: $vertical_rhythm * 0.9
+running-content:
+# Any other value such as "after-toc" does not work if the toc[] macro is used
+# Check whether the first chapter still starts at the page indicated below
+#  start-at: 7
+codespan:
+  font-color: 000000
+role:
+  red:
+    font-color: [255, 0, 0]
+table:
+  font-size: $base_font_size_min
+
