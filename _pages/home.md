@@ -18,12 +18,11 @@ selected_papers: false # includes a list of papers marked as "selected={true}"
 social: true # includes social icons at the bottom of the page
 ---
 
-From 2015 to 2021, I worked for AFPayments, Inc. in Manila, Philippines.
+I worked 17 years for Visa, first in London, and then in Singapore and Dubai. In 2015, I switched careers and moved to AFPayments, Inc<sup>1</sup>. in Manila, Philippines. There I was CEO before I retired in 2021.
 
-AFPayments manages the automated fare collection system for the light rail mass transport in Manila (LRT1, LRT2 and MRT3). The AFCS uses DESFire-based offline stored-value cards under the beep<sup>:tm:</sup> brand. The company also works hard to bring a modern fare collection system to buses and Jeepneys across the country.
+Even so I am retired, I still have an interest in AFCS and Payments systems, especially in Asia. I feel Asia is where the new and exiting developments in this industry are happening.
 
-I retired at the end of 2021, but still have an interest in AFCS and Payments systems, especially in Asia. Due to the e-wallet revolution in China and South-East Asia, and the development of public transport in the emerging markets of SEA, there are many new developments that are worth writing about.
-
+<sup>1</sup> AFPayments manages the automated fare collection system for the light rail mass transport in Manila (LRT1, LRT2 and MRT3).)
 
 [//]: # (Grew up in a small village in communist East Germany. Could not even leave the country until I was 25. )
 
