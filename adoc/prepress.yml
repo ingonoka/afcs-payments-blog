@@ -3,7 +3,7 @@ base:
   font-color: 000000
   font-size: 10
 page:
-  size: [ 6in,9in ]
+  size: [6in, 9in]
 link:
   font_color: 000000
 title_page:
@@ -26,15 +26,14 @@ header:
   sectlevels: 1
   font_size: $base_font_size_min
   height: $base-line-height-length * 2.5
-  padding: [ $base-line-height-length, 1, 0, 1 ]
+  padding: [$base-line-height-length, 1, 0, 1]
   recto:
     right:
-      content: '{section-or-chapter-title}'
+      content: "{section-or-chapter-title}"
   verso:
     left:
-      #      content: '{section-or-chapter-title}'
-      content: '{document-title}
-      '
+      # content: '{section-or-chapter-title}'
+      content: "{document-title}"
 heading:
   h2_font_size: round($base_font_size * 1.2)
   h3_font_size: round($base_font_size)
@@ -54,4 +53,3 @@ role:
     font-color: [255, 0, 0]
 table:
   font-size: $base_font_size_min
-

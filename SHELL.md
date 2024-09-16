@@ -10,12 +10,14 @@ prettier . --list-different
 
 Do a commit, to have the current file versions available if `prettier` messes up.
 
-Let `prettier` make formatting changes.  This is done in place!
+Let `prettier` make formatting changes. This is done in place!
+
 ```shell
 prettier . --write
 ```
 
 See what changes `prettier` has made.
+
 ```shell
 git diff
 ```

@@ -2,8 +2,9 @@
 layout: page
 permalink: /privacy-policy/
 title: privacy policy
-description: 
+description:
 ---
+
 <p><strong>Privacy Policy</strong></p>
 <p>Our Privacy Policy was last updated on [___DATE___].</p>
 <p>This Privacy Policy describes Our policies and procedures on the collection, use and disclosure of Your information when You use the Service and tells You about Your privacy rights and how the law protects You.</p>
