@@ -240,16 +240,12 @@ exclude:
   - adoc/
   - bin/
   - SHELL.md
-  - CONTRIBUTING.md
-  - CUSTOMIZE.md
   - Dockerfile
   - docker-compose.yml
   - docker-compose-slim.yml
-  - FAQ.md
   - Gemfile
   - Gemfile.lock
-  - INSTALL.md
-  - LICENSE
+  - LICENSE.adoc
   - lighthouse_results/
   - package.json
   - package-lock.json
