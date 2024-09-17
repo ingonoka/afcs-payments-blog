@@ -425,7 +425,7 @@ For the purpose of the GDPR, Service Providers are considered Data Processors.</
 <p>You can opt out of receiving ads that are personalized as served by our Service Providers by following our instructions presented on the Service:</p>
 <ul>
 <li>The NAI's opt-out platform: <a href="http://www.networkadvertising.org/choices/" rel="external nofollow noopener" target="_blank">http://www.networkadvertising.org/choices/</a></li>
-<li>The EDAA's opt-out platform <a href="http://www.youronlinechoices.com/" rel="external nofollow noopener" target="_blank">http://www.youronlinechoices.com/</a></li>
+<li>The EDAA's opt-out platform <a href="https://www.youronlinechoices.com/" rel="external nofollow noopener" target="_blank">https://www.youronlinechoices.com/</a></li>
 <li>The DAA's opt-out platform: <a href="http://optout.aboutads.info/?c=2&lang=EN" rel="external nofollow noopener" target="_blank">http://optout.aboutads.info/?c=2&lang=EN</a></li>
 </ul>
 <p>The opt out will place a cookie on Your computer that is unique to the browser You use to opt out. If you change browsers or delete the cookies saved by your browser, You will need to opt out again.</p>
